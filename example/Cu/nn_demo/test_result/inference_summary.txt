@@ -1,0 +1,8 @@
+For 400 images: 
+Avarage REMSE of Etot: 0.006076270226330962 
+Avarage REMSE of Etot per atom: 8.439264203237446e-05 
+Avarage REMSE of Ei: 0.011784967744934564 
+Avarage REMSE of RMSE_F: 0.005835040296791866 
+
+More details can be found under the file directory:
+/data/home/wuxingxing/codespace/PWMLFF_grad_batch/example/Cu/nn_demo/work_test_dir/test_result

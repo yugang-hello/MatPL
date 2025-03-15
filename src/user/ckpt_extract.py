@@ -40,7 +40,7 @@ def script_dp_model(model_checkpoint, ckpt_file, script_save_name:None):
     # dp_model_param = dp_param.get_dp_net_dict()
     dp_trainer = dp_network(dp_param)
     # Step 3. 初始化 DP model
-    model = dp_trainer.load_model_with_ckpt(davg=stat[0], dstd=stat[1], energy_shift=stat[2])
+    model = dp_trainer.load_model_script(davg=stat[0], dstd=stat[1], energy_shift=stat[2])
     # model = DP(config=dp_model_param, davg=stat[0], dstd=stat[1], energy_shift=stat[2])
     model.load_state_dict(model_checkpoint["state_dict"])
     if dp_param.descriptor.type_embedding:
@@ -56,9 +56,9 @@ def script_dp_model(model_checkpoint, ckpt_file, script_save_name:None):
 
     if script_save_name is None:
         if "compress" in model_checkpoint.keys():
-            save_name = "jit_cmp_dp_gpu.pt" if torch.cuda.is_available() else "jit_cmp_dp_cpu.pt"
+            save_name = "jit_cmp_dp.pt"
         else:
-            save_name = "jit_dp_gpu.pt" if torch.cuda.is_available() else "jit_dp_cpu.pt"
+            save_name = "jit_dp.pt"
     else:
         save_name = script_save_name
     model_save_path = save_name # os.path.join(torch_script_path, save_name)

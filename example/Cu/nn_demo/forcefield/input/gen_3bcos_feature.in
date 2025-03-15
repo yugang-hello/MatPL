@@ -1,0 +1,26 @@
+    6.0000    152              ! Rc_M, m_neigh 
+         1                     ! ntype 
+        29                     ! iat-type 
+    6.0000                     ! Rc 
+        20                     ! n3b 
+    1.0000      0.5000   1.00  ! zeta, width, lambda
+    1.0000      0.5000  -1.00  ! zeta, width, lambda
+    1.0000      1.0000   1.00  ! zeta, width, lambda
+    1.0000      1.0000  -1.00  ! zeta, width, lambda
+    1.0000      1.5000   1.00  ! zeta, width, lambda
+    1.0000      1.5000  -1.00  ! zeta, width, lambda
+    1.0000      2.0000   1.00  ! zeta, width, lambda
+    1.0000      2.0000  -1.00  ! zeta, width, lambda
+    1.0000      2.5000   1.00  ! zeta, width, lambda
+    1.0000      2.5000  -1.00  ! zeta, width, lambda
+    1.0000      3.0000   1.00  ! zeta, width, lambda
+    1.0000      3.0000  -1.00  ! zeta, width, lambda
+    1.0000      3.5000   1.00  ! zeta, width, lambda
+    1.0000      3.5000  -1.00  ! zeta, width, lambda
+    1.0000      4.0000   1.00  ! zeta, width, lambda
+    1.0000      4.0000  -1.00  ! zeta, width, lambda
+    1.0000      4.5000   1.00  ! zeta, width, lambda
+    1.0000      4.5000  -1.00  ! zeta, width, lambda
+    1.0000      5.0000   1.00  ! zeta, width, lambda
+    1.0000      5.0000  -1.00  ! zeta, width, lambda
+9999999.0000                     ! E_tolerance  

@@ -312,6 +312,58 @@ class dp_network:
 
         return model, optimizer
 
+    def load_model_script(self, davg, dstd, energy_shift):
+        # create model 
+        # when running evaluation, nothing needs to be done with davg.npy
+        if self.dp_params.descriptor.type_embedding:
+            from src.model.dp_dp_typ_emb_script import TypeDP
+            model = TypeDP(self.config, davg, dstd, energy_shift)
+        else:
+            from src.model.dp_dp_script import DP
+            model = DP(self.config, davg, dstd, energy_shift)
+        model = model.to(self.training_type)
+
+        # optionally resume from a checkpoint
+        checkpoint = None
+        if self.dp_params.recover_train:
+            if self.inference and os.path.exists(self.dp_params.file_paths.model_load_path): # recover from user input ckpt file for inference work
+                model_path = self.dp_params.file_paths.model_load_path
+            else: # resume model specified by user
+                model_path = self.dp_params.file_paths.model_save_path  #recover from last training for training
+            if os.path.isfile(model_path):
+                print("=> loading checkpoint '{}'".format(model_path))
+                if not torch.cuda.is_available():
+                    checkpoint = torch.load(model_path,map_location=torch.device('cpu') )
+                elif self.dp_params.gpu is None:
+                    checkpoint = torch.load(model_path)
+                elif torch.cuda.is_available():
+                    # Map model to be loaded to specified single gpu.
+                    loc = "cuda:{}".format(self.dp_params.gpu)
+                    checkpoint = torch.load(model_path, map_location=loc)
+                # start afresh
+                if self.dp_params.optimizer_param.reset_epoch:
+                    self.dp_params.optimizer_param.start_epoch = 1
+                else:
+                    self.dp_params.optimizer_param.start_epoch = checkpoint["epoch"] + 1
+                model.load_state_dict(checkpoint["state_dict"])
+                
+                # scheduler.load_state_dict(checkpoint["scheduler"])
+                print("=> loaded checkpoint '{}' (epoch {})"\
+                      .format(model_path, checkpoint["epoch"]))
+                if "compress" in checkpoint.keys():
+                    model.set_comp_tab(checkpoint["compress"])
+            else:
+                print("=> no checkpoint found at '{}'".format(model_path))
+
+        elif self.dp_params.gpu is not None and torch.cuda.is_available():
+            torch.cuda.set_device(self.dp_params.gpu)
+            model = model.cuda(self.dp_params.gpu)
+        else:
+            model = model.cuda()
+            if model.compress_tab is not None:
+                model.compress_tab.to(device=self.device)
+        return model
+
     def inference(self):
         # do inference
         dp_config = self.dp_params.get_data_file_dict()
