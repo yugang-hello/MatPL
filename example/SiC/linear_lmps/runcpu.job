@@ -9,8 +9,12 @@ echo "Starting job $SLURM_JOB_ID at " `date`
 
 echo "Running on nodes: $SLURM_NODELIST"
 
-module load intel/2020
+module load cuda/11.8-share intel/2020
 
+#export PATH=/data/home/wuxingxing/codespace/lammps_fortran_cc/lammps_neigh_mlff_20230508/src/:$PATH
+
+#export PATH=/data/home/wuxingxing/codespace/lammps-MatPL/lammps-fortran-2025.3/src/:$PATH
+#export LD_LIBRARY_PATH=/data/home/wuxingxing/codespace/lammps-MatPL/lammps-fortran-2025.3/src:$LD_LIBRARY_PATH
 
 source /data/home/wuxingxing/codespace/lammps-MatPL/lammps-fortran-2025.3/env.sh
 

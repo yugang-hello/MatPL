@@ -116,20 +116,19 @@
             "custom_flags": [
             ],
             "source_list": [
-                "/data/home/wuxingxing/anaconda3/etc/profile.d/conda.sh"
+                "/data/home/wuxingxing/anaconda3/etc/profile.d/conda.sh",
+                "/data/home/wuxingxing/codespace/PWMLFF_grad_batch/env.sh"
             ],
             "module_list": [
                 "intel/2020",
                 "cuda/11.8-share"
             ],
             "env_list": [
-                "export PYTHONPATH=/data/home/wuxingxing/codespace/PWMLFF_grad_batch/src:$PYTHONPATH",
-                "export PATH=/data/home/wuxingxing/codespace/PWMLFF_grad_batch/src/bin:$PATH",
                 "conda activate matpl-2025.3"
             ]
         },
         {
-            "command": "PWMLFF",
+            "command": "MATPL",
             "env_type":"dev_gpu_usecpu",
             "group_size": 1,
             "number_node": 1,
@@ -139,16 +138,15 @@
             "custom_flags": [
             ],
             "source_list": [
-                "/data/home/wuxingxing/anaconda3/etc/profile.d/conda.sh"
+                "/data/home/wuxingxing/anaconda3/etc/profile.d/conda.sh",
+                "/data/home/wuxingxing/codespace/PWMLFF_grad_batch/env.sh"
             ],
             "module_list": [
                 "intel/2020",
                 "cuda/11.8-share"
             ],
             "env_list": [
-                "export PYTHONPATH=/data/home/wuxingxing/codespace/PWMLFF_grad_batch/src:$PYTHONPATH",
-                "export PATH=/data/home/wuxingxing/codespace/PWMLFF_grad_batch/src/bin:$PATH",
-                "conda activate PWMLFF"
+                "conda activate matpl-2025.3"
             ]
         },
         {

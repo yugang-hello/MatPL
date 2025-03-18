@@ -314,7 +314,10 @@ class InputParam(object):
             if self.model_type == "Linear".upper():
                 params_dict["optimizer"] = self.optimizer_param.to_linear_dict()
             else:
-                params_dict["model"]["fitting_net"] = self.model_param.fitting_net.to_dict_std()
+                if self.model_type in ["NEP"]:
+                    params_dict["model"]["fitting_net"] = self.model_param.fitting_net.to_dict_std()['network_size'][0]
+                else:
+                    params_dict["model"]["fitting_net"] = self.model_param.fitting_net.to_dict_std()
                 params_dict["optimizer"] = self.optimizer_param.to_dict()
         # elif self.model_type in ["NEP"]:
         #     nep_in_content = self.model_param.nep_param.to_txt()
