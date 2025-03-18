@@ -35,7 +35,7 @@ def dp_train(input_json: json, cmd:str):
     if os.path.exists(dp_param.file_paths.model_save_path) is False:
         if os.path.exists(dp_param.file_paths.model_load_path):
             dp_param.file_paths.model_save_path = dp_param.file_paths.model_load_path
-    extract_force_field(dp_param)
+    # extract_force_field(dp_param) # not not generate the forcefield dir
 
 '''
 description: 

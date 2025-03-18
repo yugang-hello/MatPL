@@ -20,7 +20,8 @@ change_box       all triclinic
 
 mass   1    178.49
 mass   2    15.999
-pair_style   matpl nep_to_lmps.txt 
+pair_style   matpl nep0.txt nep1.txt nep2.txt nep3.txt out_freq ${DUMP_FREQ} out_file model_devi.out 
+ 
 pair_coeff       * * 72 8
 
 thermo_style    custom step temp pe ke etotal press vol lx ly lz xy xz yz

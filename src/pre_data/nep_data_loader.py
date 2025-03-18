@@ -345,6 +345,8 @@ def calculate_neighbor_num_max_min(
         
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
+    
+    print("the max neighbor of train data: {} {}".format(max_radial, max_angular))
     return max_radial, min_radial, max_angular, min_angular
 
 def calculate_neighbor_scaler(
