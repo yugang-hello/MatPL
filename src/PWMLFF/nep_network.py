@@ -480,6 +480,7 @@ class nep_network:
                     "epoch": epoch,
                     "state_dict": model.state_dict(),
                     "energy_shift":energy_shift,
+                    "max_neighbor": [model.max_NN_radial, model.max_NN_angular],
                     "q_scaler": model.get_q_scaler(),
                     "atom_type_order": self.input_param.atom_type    #atom type order of davg/dstd/energy_shift
                     # "optimizer":optimizer.state_dict()
