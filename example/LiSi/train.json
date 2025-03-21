@@ -1,0 +1,7 @@
+{
+    "model_type": "NEP",
+    "atom_type": [
+        3, 14
+    ],
+    "train_data":["MOVEMENT"]
+}

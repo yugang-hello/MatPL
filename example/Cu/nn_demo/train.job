@@ -1,0 +1,19 @@
+#!/bin/sh
+#SBATCH --job-name=nepdemo
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
+#SBATCH --gpus-per-task=1
+#SBATCH --partition=new3080ti,3080ti,3090
+
+module load cuda/11.8-share
+source /data/home/wuxingxing/anaconda3/etc/profile.d/conda.sh
+conda activate matpl-2025.3
+
+source ~/codespace/PWMLFF_grad_batch/env.sh 
+
+MATPL train nn_train.json
+
+MATPL test nn_test.json
+
+

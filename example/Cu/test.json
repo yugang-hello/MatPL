@@ -1,0 +1,6 @@
+{   
+    "format"  :"pwmat/movement",
+    "test_data":["./nn_demo/0_300_MOVEMENT", "./nn_demo/1_500_MOVEMENT"],
+    "model_type": "DP",
+    "model_load_file":"./model_record/dp_model.ckpt"    
+}

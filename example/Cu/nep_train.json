@@ -1,0 +1,6 @@
+{   
+    "format":"pwmat/movement",
+    "train_data":["./nn_demo/0_300_MOVEMENT", "./nn_demo/1_500_MOVEMENT"],
+    "model_type": "NEP",
+    "atom_type":[29]
+}
