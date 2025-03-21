@@ -37,14 +37,9 @@ def matpl_help():
             "example": "MatPL infer gpumd_nep.txt atom.config pwmat/config"
         },
         {
-            "command": "toneplmps",
-            "description": "Convert NEP ckpt force field files into txt format for LAMMPS.",
-            "example": "MatPL toneplmps nep_model.ckpt"
-        },
-        {
-            "command": "togpumd",
-            "description": "Convert NEP ckpt force field files into txt format for GPUMD.",
-            "example": "MatPL togpumd nep_model.ckpt"
+            "command": "totxt",
+            "description": "Convert NEP ckpt file into nep5.txt format for GPUMD or Lammps.",
+            "example": "MatPL totxt nep_model.ckpt"
         },
         {
             "command": "compress",

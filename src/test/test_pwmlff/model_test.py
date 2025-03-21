@@ -124,31 +124,20 @@ def set_train_cmd(train:TrainInput, resource:Resource):
             script += "    {} compress dp_model.ckpt -d 0.01 -o 3 -s cmp_dp_model\n".format(pwmlff)
             script += "    {} script dp_model.ckpt\n".format(pwmlff)
             script += "    {} script cmp_dp_model.ckpt\n".format(pwmlff)
-            script += "    export CUDA_VISIBLE_DEVICES=''\n"
             script += "    {} script dp_model.ckpt\n".format(pwmlff)
             script += "    {} script cmp_dp_model.ckpt\n".format(pwmlff)
-            script += "    cd .."
+            script += "    cd ..\n"
         else:
             script += "    cd model_record\n"
             script += "    export CUDA_VISIBLE_DEVICES=''\n"
             script += "    {} compress dp_model.ckpt -d 0.01 -o 3 -s cmp_dp_model_cpu\n".format(pwmlff)
             script += "    {} script dp_model.ckpt\n".format(pwmlff)
             script += "    {} script cmp_dp_model_cpu.ckpt\n".format(pwmlff)
-            script += "    cd .."
-        # if input_param.strategy.compress:
-        #     script += "    {} {} {} -d {} -o {} -s {}/{} >> {}\n\n".format(pwmlff, MODEL_CMD.compress, model_path, \
-        #         input_param.strategy.compress_dx, input_param.strategy.compress_order, TRAIN_FILE_STRUCTUR.model_record, TRAIN_FILE_STRUCTUR.compree_dp_name, SLURM_OUT.train_out)
-        #     cmp_model_path = "{}/{}".format(TRAIN_FILE_STRUCTUR.model_record, TRAIN_FILE_STRUCTUR.compree_dp_name)
-        
-        # if input_param.strategy.md_type == FORCEFILED.libtorch_lmps:
-        #     if resource.explore_resource.gpu_per_node is None or resource.explore_resource.gpu_per_node == 0:
-        #         script += "    export CUDA_VISIBLE_DEVICES=''\n"
-        #     if cmp_model_path is None:
-        #         # script model_record/dp_model.ckpt the torch_script_module.pt will in model_record dir
-        #         script += "    {} {} {} {}/{} >> {}\n".format(pwmlff, MODEL_CMD.script, model_path, TRAIN_FILE_STRUCTUR.model_record, TRAIN_FILE_STRUCTUR.script_dp_name, SLURM_OUT.train_out)
-        #     else:
-        #         script += "    {} {} {} {}/{} >> {}\n\n".format(pwmlff, MODEL_CMD.script, cmp_model_path, TRAIN_FILE_STRUCTUR.model_record, TRAIN_FILE_STRUCTUR.script_dp_name, SLURM_OUT.train_out)
-
+            script += "    cd ..\n"
+    if train.model_type == "NEP":
+            script += "    cd model_record\n"
+            script += "    {} totxt nep_model.ckpt\n".format(pwmlff) 
+            script += "    cd ..\n"
     return script
 
 def do_slurm_jobs(slurm_files:list[str]):

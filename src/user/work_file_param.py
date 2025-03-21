@@ -237,7 +237,7 @@ class WorkFileStructure(object):
         # self._set_data_file_paths(trainSetDir, dRFeatureInputDir, dRFeatureOutputDir, trainDataPath, validDataPath)
 
     def set_nep_native_file_paths(self):
-        self.nep_model_file = "nep_to_lmps.txt"
+        self.nep_model_file = "nep5.txt"
                                  
     def get_data_file_structure(self):
         file_dict = {}

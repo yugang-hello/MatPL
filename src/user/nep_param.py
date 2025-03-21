@@ -143,14 +143,22 @@ class NepParam(object):
         start_index = 6
         w0_num = self.feature_nums*ann_num
         b0_num = ann_num
-        ann_nums= (w0_num + b0_num*2) * self.type_num + self.type_num
+        if "5" in version:
+            ann_nums= (w0_num + b0_num*2) * self.type_num + self.type_num + 1
+        else:
+            ann_nums= (w0_num + b0_num*2) * self.type_num + self.type_num
         need_line = 6 + ann_nums + self.c_num + self.feature_nums
         if use_zbl:
             if self.use_fixed_zbl:
                 need_line += 1 + (self.type_num+1)*self.type_num/2
             else:
                 need_line += 1
-        is_gpumd_nep = False if need_line == line_num else True
+        if "4" in version:
+            is_gpumd_nep = False if need_line == line_num else True
+        else:
+            is_gpumd_nep = False
+        
+        nep5_bias = []
         for i in range(0, self.type_num):
             w0 = np.array([float(_) for _ in lines[start_index        : start_index+w0_num]]).reshape(ann_num, self.feature_nums).transpose(1,0)
             start_index = start_index + w0_num
@@ -161,17 +169,21 @@ class NepParam(object):
             w1 = np.array([float(_) for _ in lines[start_index : start_index + b0_num]]).reshape(b0_num, 1)
             start_index = start_index + b0_num
             self.model_wb.append(w1)
+            if "5" in version:
+                nep5_bias.append(-float(lines[start_index]))
+                start_index += 1
 
-        if is_gpumd_nep:
+        if "4" in version and is_gpumd_nep:
             print("The nep.txt file is from GPUMD")
             common_bias = -float(lines[start_index])
             self.bias_lastlayer = np.array([common_bias for _ in range(0, self.type_num)])
             start_index = start_index + 1
-        else:
-            print("The nep.txt file is from PWMLFF")
+        if "4" in version and is_gpumd_nep is False:
             self.bias_lastlayer = np.array([-float(_) for _ in lines[start_index : start_index + self.type_num]])
             start_index = start_index + self.type_num
-
+        if "5" in version:
+            start_index = start_index + 1 # the 0 of comm bias 
+            self.bias_lastlayer = np.array(nep5_bias)
         # attention: the value order in c++ duda is same as in cpu memory of the inintial numpy array
         _c2_param = np.array([float(_) for _ in lines[start_index:start_index + self.two_c_num]]).reshape(self.n_max[0]+1, self.basis_size[0]+1, self.type_num, self.type_num).transpose(2, 3, 0, 1)
         self.c2_param = []

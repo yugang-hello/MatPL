@@ -2,7 +2,7 @@
 import json
 import os, sys
 import argparse
-from src.user.nep_work import nep_train, nep_test, togpumd, toneplmps, tonepckpt
+from src.user.nep_work import nep_train, nep_test, nep_test_ckpt, togpumd
 from src.user.dp_work import dp_train, dp_test
 from src.user.nn_work import nn_train, gen_nn_feature, nn_test
 # from src.user.cheby_work import cheby_train, cheby_test
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         # cmd_type = "train".upper()
         # cmd_type = "infer".upper()
         # cmd_type = "explore".upper()
-        if cmd_type.lower() not in ["train", "test", "extract_ff", "compress", "toneplmps", "togpumd", "topwmlff", "script", "infer", "model_devi", "kpu"]:
+        if cmd_type.lower() not in ["train", "test", "extract_ff", "compress", "totxt", "script", "infer", "model_devi", "kpu"]:
             raise Exception("Error! The input command {} can not be recognized, please use 'MatPL -h' to query all available commands!".format(cmd_type))
         if cmd_type == "extract_ff".upper():
             ckpt_file = sys.argv[2]
@@ -36,12 +36,13 @@ if __name__ == "__main__":
         elif cmd_type == "compress".upper():
             ckpt_file = sys.argv[2]
             compress_force_field(ckpt_file)
-        elif cmd_type == "toneplmps".upper():
-            toneplmps(sys.argv[2:])
-        elif cmd_type == "togpumd".upper():
+        # elif cmd_type == "toneplmps".upper():
+        #     toneplmps(sys.argv[2:])
+        elif cmd_type == "totxt".upper():
             togpumd(sys.argv[2:])
-        elif cmd_type == "topwmlff".upper():
-            tonepckpt(sys.argv[2:])
+
+        # elif cmd_type == "topwmlff".upper():
+        #     tonepckpt(sys.argv[2:])
 
         elif cmd_type == "script".upper():
             ckpt_file = sys.argv[2]
@@ -122,6 +123,7 @@ if __name__ == "__main__":
                     linear_test(json_file, cmd_type)
                 elif model_type == "NEP".upper():
                     nep_test(json_file, cmd_type)
+                    # nep_test_ckpt(json_file, cmd_type)
                     pass
                 # elif model_type == "CHEBY".upper():
                 #     cheby_test(json_file, cmd_type)
