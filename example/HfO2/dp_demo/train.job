@@ -6,11 +6,11 @@
 #SBATCH --gpus-per-task=1
 #SBATCH --partition=new3080ti,3080ti,3090
 
-module load cuda/11.8-share
+module load cuda/11.8-share  intel/2020
 source /data/home/wuxingxing/anaconda3/etc/profile.d/conda.sh
 conda activate matpl-2025.3
 
-source ~/codespace/MatPL-2025.3/env.sh
+source ~/codespace/PWMLFF_grad_batch/env.sh
 
 MATPL train dp_train.json
 

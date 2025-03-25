@@ -162,7 +162,7 @@ class UniDataset(Dataset):
         if torch.cuda.is_available():
             device = torch.device("cuda")
         else:
-            self.device = torch.device("cpu")
+            device = torch.device("cpu")
         maxneigh = calculate_neighbor_num_max_min(self, device)
         self.m_neigh = max(maxneigh, self.m_neigh)
         self.config['maxNeighborNum'] = self.m_neigh
