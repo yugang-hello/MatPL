@@ -43,3 +43,4 @@ src/std_compile.log
 env.sh
 src/test/test_workdir*
 src/test/tmp.py
+src/test/template_lmps.json
