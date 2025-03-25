@@ -63,7 +63,7 @@
             ]
         },
         {
-            "command": "PWMLFF",
+            "command": "MatPL",
             "env_type":"off_gpu_usecpu",
             "group_size": 1,
             "number_node": 1,
@@ -85,7 +85,7 @@
             ]
         },
         {
-            "command": "PWMLFF",
+            "command": "MatPL",
             "env_type":"off_cpu",
             "group_size": 1,
             "number_node": 1,
@@ -95,14 +95,13 @@
             "custom_flags": [
             ],
             "source_list": [
-                "/data/home/wuxingxing/pack/pack_cpu/test/PWMLFF_cpu-2024.5/pwmlff_cpu-2024.5/bin/activate"
+                "/data/home/wuxingxing/pack/pack-2025.3/test_cpu/MatPL_cpu-2025.3/matpl_cpu-2025.3/bin/activate",
+                "/data/home/wuxingxing/pack/pack-2025.3/test_cpu/MatPL_cpu-2025.3/MatPL_cpu-2025.3/env.sh"
             ],
             "module_list": [
                 "intel/2020"
             ],
             "env_list": [
-                "export PYTHONPATH=/data/home/wuxingxing/pack/pack_cpu/test/PWMLFF_cpu-2024.5/PWMLFF/src:$PYTHONPATH",
-                "export PATH=/data/home/wuxingxing/pack/pack_cpu/test/PWMLFF_cpu-2024.5/PWMLFF/src/bin:$PATH"
             ]
         },
         {
@@ -206,7 +205,7 @@
     "work_list": [
         {
             "_work_type":"mcloud envs(gpu and cpu) for DP, NEP",
-            "envs":[0],
+            "envs":[4],
             "epochs":[1,1,1,1,1],
             "train_inputs":[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13,14,15,16,17,18,19,20,21,22]
         }
