@@ -131,7 +131,7 @@ class UniDataset(Dataset):
                     self.image_list.extend(image_read)
                 else:
                     self.image_list.append(image_read)
-
+        class_dict = {}
         for image in self.image_list:
             if self.use_cartesian:
                 if image.cartesian is False:
@@ -143,45 +143,81 @@ class UniDataset(Dataset):
             if not hasattr(image, 'atom_type_map'):
                 image.atom_type_map = np.array([self.atom_types.index(_) for _ in image.atom_types_image])
 
+                atom_types = image.atom_types_image
+                cout_type, cout_num = np.unique(atom_types, return_counts=True)
+                image_key = "_".join(["{}:{}".format(i1, i2) for i1, i2 in zip(cout_type, cout_num)])
+                if image_key in class_dict.keys():
+                    class_dict[image_key]['Ep'].append(image.Ep)
+                else:
+                    class_dict[image_key] = {}
+                    class_dict[image_key]['Ep'] = [image.Ep]
+                    class_dict[image_key]['cout_num'] = cout_num
+                    class_dict[image_key]['cout_type'] = cout_type
+
         if self.cal_energy:
-            self.energy_shift = self.set_energy_shift()
+            self.energy_shift = self.set_energy_shift_2(class_dict) # self.set_energy_shift()
         else:
             self.energy_shift = [0 for _ in self.atom_types] # for valid or test the energy shift is reused from models
         
         return self.image_list, len(self.image_list)
-    
-    def set_energy_shift(self):
+
+    def set_energy_shift_2(self, class_dict):
         energy_dict = {}
-        atom_type_searched = set()
-        repeat_num = 0
         for atom in self.atom_types:
             energy_dict[atom] = []
         energy_dict['E'] = []
-        shuffled_list = random.sample(self.image_list, len(self.image_list))
-        for image in shuffled_list:
-            atom_types = image.atom_types_image
-            cout_type, cout_num = np.unique(atom_types, return_counts=True)
-            atom_types_image_dict = dict(zip(cout_type, cout_num))
+        for key in class_dict.keys():
+            Ep = np.mean(class_dict[key]['Ep'])
+            cout_num  = class_dict[key]['cout_num'] 
+            cout_type = class_dict[key]['cout_type']
+
             for element in self.atom_types:
-                if element in atom_types_image_dict.keys():
-                    energy_dict[element].append(atom_types_image_dict[element])
+                if element in cout_type:
+                    indices = np.where(cout_type == element)[0]
+                    energy_dict[element].append(cout_num[indices][0])
                 else:
                     energy_dict[element].append(0)
-            energy_dict['E'].append(image.Ep)
-            for element in atom_types_image_dict.keys():
-                atom_type_searched.add(element)
-            if len(atom_type_searched) == len(self.atom_types):
-                repeat_num += 1
-                atom_type_searched.clear()
-            if repeat_num > 5:
-                break
+            energy_dict['E'].append(Ep)
         _num_matrix = []
         for key in energy_dict.keys():
             if key != 'E':
                 _num_matrix.append(energy_dict[key])
         x, residuals, rank, s = np.linalg.lstsq(np.array(_num_matrix).T, energy_dict['E'], rcond=None)
         energy_shift = x.tolist()
-        return energy_shift
+        return energy_shift # array([-7.85248589, -8.80939613, -5.12775169, -3.13588943])
+
+    # def set_energy_shift(self):
+    #     energy_dict = {}
+    #     atom_type_searched = set()
+    #     repeat_num = 0
+    #     for atom in self.atom_types:
+    #         energy_dict[atom] = []
+    #     energy_dict['E'] = []
+    #     shuffled_list = random.sample(self.image_list, len(self.image_list))
+    #     for image in shuffled_list:
+    #         atom_types = image.atom_types_image
+    #         cout_type, cout_num = np.unique(atom_types, return_counts=True)
+    #         atom_types_image_dict = dict(zip(cout_type, cout_num))
+    #         for element in self.atom_types:
+    #             if element in atom_types_image_dict.keys():
+    #                 energy_dict[element].append(atom_types_image_dict[element])
+    #             else:
+    #                 energy_dict[element].append(0)
+    #         energy_dict['E'].append(image.Ep)
+    #         for element in atom_types_image_dict.keys():
+    #             atom_type_searched.add(element)
+    #         if len(atom_type_searched) == len(self.atom_types):
+    #             repeat_num += 1
+    #             atom_type_searched.clear()
+    #         if repeat_num > 5:
+    #             break
+    #     _num_matrix = []
+    #     for key in energy_dict.keys():
+    #         if key != 'E':
+    #             _num_matrix.append(energy_dict[key])
+    #     x, residuals, rank, s = np.linalg.lstsq(np.array(_num_matrix).T, energy_dict['E'], rcond=None)
+    #     energy_shift = x.tolist()
+    #     return energy_shift
 
     def get_energy_shift(self):
         return self.energy_shift
