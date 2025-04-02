@@ -53,7 +53,7 @@ class Inference(object):
         if "optimizer" not in model_checkpoint["json_file"].keys() or \
             model_checkpoint["json_file"]["optimizer"] is None:
             model_checkpoint["json_file"]["optimizer"] = {}
-            model_checkpoint["json_file"]["optimizer"]["optimizer"] = "LKF"
+            model_checkpoint["json_file"]["optimizer"]["optimizer"] = "ADAM"
 
         if model_checkpoint['json_file']['model_type'].upper() == "DP".upper():
             stat = [model_checkpoint["davg"], model_checkpoint["dstd"], model_checkpoint["energy_shift"]]

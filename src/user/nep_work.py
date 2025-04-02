@@ -70,7 +70,7 @@ def nep_test(input_json: json, cmd:str):
     input_dict["raw_files"] = get_parameter("raw_files", input_json, [])
     input_dict["format"] = get_parameter("format", input_json, "pwmat/config")
     input_dict["optimizer"] = {}
-    input_dict["optimizer"]["optimizer"] = "LKF"        
+    input_dict["optimizer"]["optimizer"] = "ADAM"        
     nep_param = InputParam(input_dict, "test".upper())
     # set inference param
     nep_param.set_test_relative_params(input_json, is_nep_txt=True)
@@ -94,7 +94,7 @@ def nep_test(input_json: json, cmd:str):
         json_dict_train = model_checkpoint["json_file"]
         model_checkpoint["json_file"]["datasets_path"] = []
         json_dict_train["optimizer"] = {}
-        json_dict_train["optimizer"]["optimizer"] = "LKF"
+        json_dict_train["optimizer"]["optimizer"] = "ADAM"
         nep_param = InputParam(json_dict_train, "test".upper())
         # set inference param
         nep_param.set_test_relative_params(input_json)
@@ -177,7 +177,7 @@ def togpumd(cmd_list:list[str]):
 #         input_dict["raw_files"] = []
 #         input_dict["format"] = "pwmat/config"
 #         input_dict["optimizer"] = {}
-#         input_dict["optimizer"]["optimizer"] = "LKF"        
+#         input_dict["optimizer"]["optimizer"] = "ADAM"        
 #         nep_param = InputParam(input_dict, "test".upper())
 #         # set inference param
 #         nep_param.set_test_relative_params(input_dict, is_nep_txt=True)

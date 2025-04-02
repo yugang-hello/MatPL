@@ -1,11 +1,11 @@
 
 def comm_info():
     print("\n" + "=" * 50) 
-    print("         PWMLFF Basic Information")
+    print("          MATPL Basic Information")
     print("=" * 50) 
     print("Version: 2025.03")
     print("Compatible pwdata: >= 0.5.0")
-    print("Compatible pwact: >= 0.3.0")
+    print("Compatible pwact: >= 0.2.0")
     print("Contact: support@pwmat.com")
     print("Citation: https://github.com/LonxunQuantum/MatPL")
     print("Manual online: http://doc.lonxun.com/PWMLFF/")

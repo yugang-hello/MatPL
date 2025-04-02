@@ -7,7 +7,7 @@ class OptimizerParam(object):
 
     def set_optimizer(self, json_source:dict, nep_param:NepParam=None):
         optimizer_dict = get_parameter("optimizer", json_source, {})
-        self.opt_name = get_parameter("optimizer", optimizer_dict, "LKF")
+        self.opt_name = get_parameter("optimizer", optimizer_dict, "ADAM")
         self.batch_size = get_parameter("batch_size", optimizer_dict, 1)
         # self.batch_size = 1
         self.epochs = get_parameter("epochs", optimizer_dict, 30)
