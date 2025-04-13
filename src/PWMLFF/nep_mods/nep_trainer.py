@@ -5,7 +5,8 @@ import time
 import torch
 from torch.utils.data import Subset
 from torch.autograd import Variable
-from src.loss.dploss import dp_loss, adjust_lr
+#from src.loss.dploss import dp_loss, adjust_lr
+from src.loss.weightedloss import weighted_loss
 from src.optimizer.KFWrapper import KFOptimizerWrapper
 # import horovod.torch as hvd
 from torch.profiler import profile, record_function, ProfilerActivity
@@ -132,8 +133,12 @@ def train(train_loader, model, criterion, optimizer, epoch, start_lr, device, ar
         avg_atom_number = (sample['num_atom_sum'][-1] / batch_size).item()
         nr_batch_sample = sample["num_atom"].shape[0]
         global_step = (epoch - 1) * len(train_loader) + i * nr_batch_sample
-        real_lr = adjust_lr(global_step, start_lr, \
-                            args.optimizer_param.stop_step, args.optimizer_param.decay_step, args.optimizer_param.stop_lr) #  stop_step, decay_step
+        #real_lr = adjust_lr(global_step, start_lr, \
+        #                    args.optimizer_param.stop_step, args.optimizer_param.decay_step, args.optimizer_param.stop_lr) #  stop_step, decay_step
+        #for param_group in optimizer.param_groups:
+        #    param_group["lr"] = real_lr * (avg_atom_number**0.5)
+        # For test, now we don't need to change the lr iteratively
+        real_lr = start_lr
         for param_group in optimizer.param_groups:
             param_group["lr"] = real_lr * (avg_atom_number**0.5)
 
@@ -182,10 +187,28 @@ def train(train_loader, model, criterion, optimizer, epoch, start_lr, device, ar
             loss_val += loss_Egroup_val
 
         if args.optimizer_param.train_egroup is True and args.optimizer_param.train_virial is True:
-            loss, _, _ = dp_loss(
+            # Now use the start_pre_fac for the fixed task weight
+
+            #loss, _, _ = dp_loss(
+            #    args,
+            #    0.001,
+            #    real_lr,
+            #    1,
+            #    w_f,
+            #    loss_F_val,
+            #    w_e,
+            #    loss_Etot_val,
+            #    w_v,
+            #    loss_Virial_val,
+            #    w_eg,
+            #    loss_Egroup_val,
+            #    w_ei,
+            #    loss_Ei_val,
+            #    avg_atom_number,
+            #)
+        
+            loss, _, _ = weighted_loss(
                 args,
-                0.001,
-                real_lr,
                 1,
                 w_f,
                 loss_F_val,
@@ -199,11 +222,26 @@ def train(train_loader, model, criterion, optimizer, epoch, start_lr, device, ar
                 loss_Ei_val,
                 avg_atom_number,
             )
+
         elif args.optimizer_param.train_egroup is True and args.optimizer_param.train_virial is False:
-            loss, _, _ = dp_loss(
+            #loss, _, _ = dp_loss(
+            #    args,
+            #    0.001,
+            #    real_lr,
+            #    2,
+            #    w_f,
+            #    loss_F_val,
+            #    w_e,
+            #    loss_Etot_val,
+            #    w_eg,
+            #    loss_Egroup_val,
+            #    w_ei,
+            #    loss_Ei_val,
+            #    avg_atom_number,
+            #)
+
+            loss, _, _ = weighted_loss(
                 args,
-                0.001,
-                real_lr,
                 2,
                 w_f,
                 loss_F_val,
@@ -215,12 +253,27 @@ def train(train_loader, model, criterion, optimizer, epoch, start_lr, device, ar
                 loss_Ei_val,
                 avg_atom_number,
             )
+
         elif args.optimizer_param.train_egroup is False and \
                 args.optimizer_param.train_virial is True and data_mask.any().item():
-            loss, _, _ = dp_loss(
+            #loss, _, _ = dp_loss(
+            #    args,
+            #    0.001,
+            #    real_lr,
+            #    3,
+            #    w_f,
+            #    loss_F_val,
+            #    w_e,
+            #    loss_Etot_val,
+            #    w_v,
+            #    loss_Virial_val,
+            #    w_ei,
+            #    loss_Ei_val,
+            #    avg_atom_number,
+            #)
+
+            loss, _, _ = weighted_loss(
                 args,
-                0.001,
-                real_lr,
                 3,
                 w_f,
                 loss_F_val,
@@ -232,11 +285,24 @@ def train(train_loader, model, criterion, optimizer, epoch, start_lr, device, ar
                 loss_Ei_val,
                 avg_atom_number,
             )
+
         else:
-            loss, _, _ = dp_loss(
+            #loss, _, _ = dp_loss(
+            #    args,
+            #    0.001,
+            #    real_lr,
+            #    4,
+            #    w_f,
+            #    loss_F_val,
+            #    w_e,
+            #    loss_Etot_val,
+            #    w_ei,
+            #    loss_Ei_val,
+            #    avg_atom_number,
+            #)
+
+            loss, _, _ = weighted_loss(
                 args,
-                0.001,
-                real_lr,
                 4,
                 w_f,
                 loss_F_val,
@@ -246,6 +312,7 @@ def train(train_loader, model, criterion, optimizer, epoch, start_lr, device, ar
                 loss_Ei_val,
                 avg_atom_number,
             )
+
         # import ipdb;ipdb.set_trace()
         loss.backward()
         optimizer.step()
