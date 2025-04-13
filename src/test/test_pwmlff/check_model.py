@@ -70,13 +70,13 @@ def check_ckpt_model(model_record:str, model_type):
         model_check["model_exists"]=False
     else:
         if model_type == "DP":
-            if len(glob.glob(os.path.join(model_record, "jit_dp_cpu.pt"))) == 0:
+            if len(glob.glob(os.path.join(model_record, "jit_cmp_dp.pt"))) == 0:
                 model_check["jit_model_exists"]=False
             # if not os.path.exists(work_dir, "")
         if model_type == "NEP":
-            if not os.path.exists(os.path.join(model_record, "nep_to_lmps.txt")):
-                model_check["nep_to_lammps_exists"]=False
-        if model_type == "NN" or model_type == "DP":
+            if not os.path.exists(os.path.join(model_record, "nep5.txt")):
+                model_check["nep5_exists"]=False
+        if model_type == "NN":
             if not os.path.exists(os.path.join(os.path.dirname(model_record), "forcefield/forcefield.ff")):
                 model_check["forcefield.ff_exists"]=False
 
@@ -89,9 +89,9 @@ def check_test_result(test_result, model_type):
     if not os.path.exists(os.path.join(test_result, "inference_force.txt")):
         test_check["inference_force_exists"]=False
     if not os.path.exists(os.path.join(test_result, "dft_force.txt")):
-        test_check["txt_exists"]=False
-    if not os.path.exists(os.path.join(test_result, "inference_loss.csv")):
-        test_check["inference_loss_exists"]=False
+        test_check["dft_force_exists"]=False
+    # if not os.path.exists(os.path.join(test_result, "inference_loss.csv")):
+    #     test_check["inference_loss_exists"]=False
     if not os.path.exists(os.path.join(test_result, "dft_total_energy.txt")):
         test_check["dft_total_energy_exists"]=False
     if not os.path.exists(os.path.join(test_result, "inference_summary.txt")):

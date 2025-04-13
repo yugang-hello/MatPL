@@ -85,7 +85,7 @@ def make_json_input(model_dict, emb_net_size:list, fit_net_size:list, atom_list:
     descriptor = {}
     fitting_net = {}
     optimizer = {}
-    optimizer["optimizer"] = "LKF"
+    optimizer["optimizer"] = "ADAM"
     optimizer["batch_size"] = 32
     descriptor["M2"] = M2
     descriptor["network_size"] = emb_net_size

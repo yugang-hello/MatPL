@@ -1,15 +1,13 @@
 
 def comm_info():
     print("\n" + "=" * 50) 
-    print("         PWMLFF Basic Information")
+    print("          MATPL Basic Information")
     print("=" * 50) 
-    print("Version: 2025.02")
-    print("Compatible pwdata: >= 0.4.8")
-    print("Compatible pwact: >= 0.2.1")
-    print("Last Commit: 2025.03.05")
-    print("Git Hash: 7bdaa90da15a5bfca6a831e739ebdd67fca22299")
+    print("Version: 2025.03")
+    print("Compatible pwdata: >= 0.5.0")
+    print("Compatible pwact: >= 0.2.0")
     print("Contact: support@pwmat.com")
-    print("Citation: https://github.com/LonxunQuantum/PWMLFF")
+    print("Citation: https://github.com/LonxunQuantum/MatPL")
     print("Manual online: http://doc.lonxun.com/PWMLFF/")
     print("=" * 50)  
     print("\n\n")
@@ -37,14 +35,9 @@ def matpl_help():
             "example": "MatPL infer gpumd_nep.txt atom.config pwmat/config"
         },
         {
-            "command": "toneplmps",
-            "description": "Convert NEP ckpt force field files into txt format for LAMMPS.",
-            "example": "MatPL toneplmps nep_model.ckpt"
-        },
-        {
-            "command": "togpumd",
-            "description": "Convert NEP ckpt force field files into txt format for GPUMD.",
-            "example": "MatPL togpumd nep_model.ckpt"
+            "command": "totxt",
+            "description": "Convert NEP ckpt file into nep5.txt format for GPUMD or Lammps.",
+            "example": "MatPL totxt nep_model.ckpt"
         },
         {
             "command": "compress",

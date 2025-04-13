@@ -7,7 +7,7 @@ class OptimizerParam(object):
 
     def set_optimizer(self, json_source:dict, nep_param:NepParam=None):
         optimizer_dict = get_parameter("optimizer", json_source, {})
-        self.opt_name = get_parameter("optimizer", optimizer_dict, "LKF")
+        self.opt_name = get_parameter("optimizer", optimizer_dict, "ADAM")
         self.batch_size = get_parameter("batch_size", optimizer_dict, 1)
         # self.batch_size = 1
         self.epochs = get_parameter("epochs", optimizer_dict, 30)
@@ -92,10 +92,10 @@ class OptimizerParam(object):
         opt_dict = {}
         opt_dict["train_energy"] = self.train_energy
         opt_dict["train_force"] = self.train_force
-        opt_dict["train_ei"] = self.train_ei
+        # opt_dict["train_ei"] = self.train_ei
         opt_dict["pre_fac_force"] = self.pre_fac_force
         opt_dict["pre_fac_etot"] = self.pre_fac_etot
-        opt_dict["pre_fac_ei"] = self.pre_fac_ei
+        # opt_dict["pre_fac_ei"] = self.pre_fac_ei
         return opt_dict
     
     def to_dict(self):
@@ -118,15 +118,15 @@ class OptimizerParam(object):
 
             opt_dict["train_energy"] = self.train_energy
             opt_dict["train_force"] = self.train_force
-            opt_dict["train_ei"] = self.train_ei
+            # opt_dict["train_ei"] = self.train_ei
             opt_dict["train_virial"] = self.train_virial
-            opt_dict["train_egroup"] = self.train_egroup
+            # opt_dict["train_egroup"] = self.train_egroup
     
             opt_dict["pre_fac_force"] = self.pre_fac_force
             opt_dict["pre_fac_etot"] = self.pre_fac_etot
-            opt_dict["pre_fac_ei"] = self.pre_fac_ei
+            # opt_dict["pre_fac_ei"] = self.pre_fac_ei
             opt_dict["pre_fac_virial"] = self.pre_fac_virial
-            opt_dict["pre_fac_egroup"] = self.pre_fac_egroup
+            # opt_dict["pre_fac_egroup"] = self.pre_fac_egroup
 
             opt_dict["p0_weight"] = self.p0_weight
 
@@ -142,19 +142,19 @@ class OptimizerParam(object):
 
             opt_dict["train_energy"] = self.train_energy
             opt_dict["train_force"] = self.train_force
-            opt_dict["train_ei"] = self.train_ei
+            # opt_dict["train_ei"] = self.train_ei
             opt_dict["train_virial"] = self.train_virial
-            opt_dict["train_egroup"] = self.train_egroup
+            # opt_dict["train_egroup"] = self.train_egroup
 
             opt_dict["start_pre_fac_force"] = self.start_pre_fac_force
             opt_dict["start_pre_fac_etot"] = self.start_pre_fac_etot
-            opt_dict["start_pre_fac_ei"] = self.start_pre_fac_ei
+            # opt_dict["start_pre_fac_ei"] = self.start_pre_fac_ei
             opt_dict["start_pre_fac_virial"] = self.start_pre_fac_virial
-            opt_dict["start_pre_fac_egroup"] = self.start_pre_fac_egroup
+            # opt_dict["start_pre_fac_egroup"] = self.start_pre_fac_egroup
 
             opt_dict["end_pre_fac_force"] = self.end_pre_fac_force
             opt_dict["end_pre_fac_etot"] = self.end_pre_fac_etot
-            opt_dict["end_pre_fac_ei"] = self.end_pre_fac_ei
+            # opt_dict["end_pre_fac_ei"] = self.end_pre_fac_ei
             opt_dict["end_pre_fac_virial"] = self.end_pre_fac_virial
-            opt_dict["end_pre_fac_egroup"] = self.end_pre_fac_egroup
+            # opt_dict["end_pre_fac_egroup"] = self.end_pre_fac_egroup
         return opt_dict

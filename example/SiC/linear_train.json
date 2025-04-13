@@ -1,5 +1,7 @@
 {   
     "train_data":["./1_300_MOVEMENT", "./2_300_MOVEMENT"],
+    "valid_data":["./1_300_MOVEMENT"],
+    "format":"pwmat/movement",
     "model_type": "Linear",
     "atom_type":[14, 6]
 }

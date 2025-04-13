@@ -21,13 +21,12 @@ def inference_plot(data_dir:str):
         _dft_V  = np.loadtxt(os.path.join(data_dir, "dft_virial.txt"))
         _MLFF_V = np.loadtxt(os.path.join(data_dir, "inference_virial.txt"))
 
-        filtered_indices = _dft_V > -1e6
-        
-        dft_V = _dft_V[filtered_indices].reshape(-1, 6)
-        MLFF_V= _MLFF_V[filtered_indices].reshape(-1, 6)
+        filtered_indices = (_dft_V > -1e6).all(axis=1)
+        dft_V = _dft_V[filtered_indices,:]
+        MLFF_V= _MLFF_V[filtered_indices,:]
 
         if len(dft_V) > 0:
-            atom_idx = np.repeat(num_atom[filtered_indices[:,0]][:, np.newaxis], 6, axis=1)
+            atom_idx = np.repeat(num_atom, 6).reshape(num_atom.shape[0], 6)[filtered_indices, :]
             dft_V = dft_V/atom_idx
             MLFF_V = MLFF_V/atom_idx
             rmse_V = np.sqrt(np.square(dft_V - MLFF_V).mean())
@@ -56,7 +55,7 @@ def inference_plot(data_dir:str):
 
     plt.plot(dft_F, MLFF_F,"o",markersize=3,c="C0")
     plt.plot([F_min,F_max],[F_min,F_max],"--",lw=1.2,c="C1")
-    plt.axis([F_min+1.02,F_max*1.02,F_min*1.02,F_max*1.02])
+    plt.axis([F_min*1.02,F_max*1.02,F_min*1.02,F_max*1.02])
     s = r"RMSE of Force is %.3f eV/$\mathrm{\AA}$" % rmse_F
     ax = plt.gca()
     plt.text(.15,.05,s,fontsize=size,transform=ax.transAxes)
@@ -72,14 +71,14 @@ def inference_plot(data_dir:str):
     if rmse_V is not None and len(dft_V) > 0 :
         plt.plot(dft_V, MLFF_V,"o",markersize=3,c="C0")
         plt.plot([V_min,V_max],[V_min,V_max],"--",lw=1.2,c="C1")
-        plt.axis([V_min+1.02,V_max*1.02,V_min*1.02,V_max*1.02])
+        plt.axis([V_min*1.02,V_max*1.02,V_min*1.02,V_max*1.02])
         s = r"RMSE of Virial is %.3f eV/atom" % rmse_V
         ax = plt.gca()
         plt.text(.15,.05,s,fontsize=size,transform=ax.transAxes)
         plt.xticks(size=size-4)
         plt.yticks(size=size-4)
-        plt.xlabel(r"DFT Virial (eV)",size=size)
-        plt.ylabel(r"MLFF Virial (eV)",size=size)
+        plt.xlabel(r"DFT Virial (eV/atom)",size=size)
+        plt.ylabel(r"MLFF Virial (eV/atom)",size=size)
         #plt.title(title,size=size+4)
         plt.tight_layout()
         plt.savefig(os.path.join(data_dir, "Virial.png"), dpi=360)

@@ -406,19 +406,19 @@ class nn_network:
             )
         elif self.dp_params.optimizer_param.opt_name == "ADAM":
             if self.dp_params.optimizer_param.lambda_2 is None:
-                optimizer = optim.Adam(model.parameters(), 
+                optimizer = optim.Adam(self.model.parameters(), 
                                     lr=self.dp_params.optimizer_param.learning_rate)
             else:
-                optimizer = optim.Adam(model.parameters(), 
+                optimizer = optim.Adam(self.model.parameters(), 
                                     lr=self.dp_params.optimizer_param.learning_rate, 
                                         weight_decay=self.dp_params.optimizer_param.lambda_2)
 
         elif self.dp_params.optimizer_param.opt_name == "ADAMW":
             if self.dp_params.optimizer_param.lambda_2 is None:
-                optimizer = optim.AdamW(model.parameters(), 
+                optimizer = optim.AdamW(self.model.parameters(), 
                                     lr=self.dp_params.optimizer_param.learning_rate)
             else:
-                optimizer = optim.AdamW(model.parameters(), 
+                optimizer = optim.AdamW(self.model.parameters(), 
                                     lr=self.dp_params.optimizer_param.learning_rate, 
                                         weight_decay=self.dp_params.optimizer_param.lambda_2)
         elif opt_optimizer == "SGD":
@@ -498,8 +498,8 @@ class nn_network:
         if self.dp_params.optimizer_param.train_energy:
             # train_lists.append("RMSE_Etot")
             # valid_lists.append("RMSE_Etot")
-            train_lists.append("RMSE_Etot_per_atom")
-            valid_lists.append("RMSE_Etot_per_atom")
+            train_lists.append("RMSE_Etot(eV/atom)")
+            valid_lists.append("RMSE_Etot(eV/atom)")
         if self.dp_params.optimizer_param.train_ei:
             train_lists.append("RMSE_Ei")
             valid_lists.append("RMSE_Ei")
@@ -507,42 +507,42 @@ class nn_network:
             train_lists.append("RMSE_Egroup")
             valid_lists.append("RMSE_Egroup")
         if self.dp_params.optimizer_param.train_force:
-            train_lists.append("RMSE_F")
-            valid_lists.append("RMSE_F")
+            train_lists.append("RMSE_F(eV/Å)")
+            valid_lists.append("RMSE_F(eV/Å)")
         if self.dp_params.optimizer_param.train_virial:
             # train_lists.append("RMSE_virial")
             # valid_lists.append("RMSE_virial")
-            train_lists.append("RMSE_virial_per_atom")
-            valid_lists.append("RMSE_virial_per_atom")
+            train_lists.append("RMSE_virial(eV/atom)")
+            valid_lists.append("RMSE_virial(eV/atom)")
         if self.dp_params.optimizer_param.opt_name == "LKF" or self.dp_params.optimizer_param.opt_name == "GKF":
-            train_lists.extend(["time"])
+            train_lists.extend(["time(s)"])
         else:
-            train_lists.extend(["real_lr", "time"])
+            train_lists.extend(["real_lr", "time(s)"])
 
         train_print_width = {
             "epoch": 5,
             "loss": 18,
-            "RMSE_Etot": 18,
-            "RMSE_Etot_per_atom": 21,
+            "RMSE_Etot(eV)": 18,
+            "RMSE_Etot(eV/atom)": 21,
             "RMSE_Ei": 18,
             "RMSE_Egroup": 18,
-            "RMSE_F": 18,
-            "RMSE_virial": 18,
-            "RMSE_virial_per_atom": 23,
+            "RMSE_F(eV/Å)": 21,
+            "RMSE_virial(eV)": 18,
+            "RMSE_virial(eV/atom)": 23,
             "Loss_l1": 18,
             "Loss_l2": 18,
             "real_lr": 18,
-            "time": 18,
+            "time(s)": 15,
         }
 
         train_format = "".join(["%{}s".format(train_print_width[i]) for i in train_lists])
         valid_format = "".join(["%{}s".format(train_print_width[i]) for i in valid_lists])
 
-        f_train_log.write("%s\n" % (train_format % tuple(train_lists)))
+        f_train_log.write("# %s\n" % (train_format % tuple(train_lists)))
         if self.val_loader is not None:
             valid_log = os.path.join(self.dp_params.file_paths.model_store_dir, "epoch_valid.dat")
             f_valid_log = open(valid_log, "w")
-            f_valid_log.write("%s\n" % (valid_format % tuple(valid_lists)))
+            f_valid_log.write("# %s\n" % (valid_format % tuple(valid_lists)))
 
         for epoch in range(self.dp_params.optimizer_param.start_epoch, self.dp_params.optimizer_param.epochs + 1):
             # train for one epoch
@@ -563,7 +563,7 @@ class nn_network:
             f_train_log = open(train_log, "a")
 
             # Write the log line to the file based on the training mode
-            train_log_line = "%5d%18.10e" % (
+            train_log_line = "%5d%20.10e" % (
                 epoch,
                 loss,
             )
@@ -578,13 +578,13 @@ class nn_network:
             if self.dp_params.optimizer_param.train_egroup:
                 train_log_line += "%18.10e" % (loss_egroup)
             if self.dp_params.optimizer_param.train_force:
-                train_log_line += "%18.10e" % (loss_Force)
+                train_log_line += "%21.10e" % (loss_Force)
             if self.dp_params.optimizer_param.train_virial:
                 train_log_line += "%23.10e" % (loss_virial_per_atom)
             if self.dp_params.optimizer_param.opt_name == "LKF" or self.dp_params.optimizer_param.opt_name == "GKF":
-                train_log_line += "%18.4f" % (time_end - time_start)
+                train_log_line += "%15.4f" % (time_end - time_start)
             else:
-                train_log_line += "%18.10e%18.4f" % (real_lr, time_end - time_start)
+                train_log_line += "%18.10e%15.4f" % (real_lr, time_end - time_start)
 
             f_train_log.write("%s\n" % (train_log_line))
             f_train_log.close()
@@ -595,7 +595,7 @@ class nn_network:
                     self.val_loader, self.model, self.criterion, self.device, self.dp_params
                 )
                 f_valid_log = open(valid_log, "a")
-                valid_log_line = "%5d%18.10e" % (epoch, vld_loss)
+                valid_log_line = "%5d%20.10e" % (epoch, vld_loss)
                 if self.dp_params.optimizer_param.train_energy:
                     valid_log_line += "%21.10e" % (vld_loss_Etot_per_atom)
                 if self.dp_params.optimizer_param.train_ei:
@@ -603,7 +603,7 @@ class nn_network:
                 if self.dp_params.optimizer_param.train_egroup:
                     valid_log_line += "%18.10e" % (val_loss_egroup)
                 if self.dp_params.optimizer_param.train_force:
-                    valid_log_line += "%18.10e" % (vld_loss_Force)
+                    valid_log_line += "%21.10e" % (vld_loss_Force)
                 if self.dp_params.optimizer_param.train_virial:
                     valid_log_line += "%23.10e" % (val_loss_virial_per_atom)
                 f_valid_log.write("%s\n" % (valid_log_line))

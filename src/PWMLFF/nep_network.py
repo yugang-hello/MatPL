@@ -40,6 +40,7 @@ from src.PWMLFF.nep_mods.nep_trainer import train_KF, train, valid, save_checkpo
 from src.PWMLFF.dp_param_extract import load_atomtype_energyshift_from_checkpoint
 from src.user.input_param import InputParam
 from utils.file_operation import write_arrays_to_file, write_force_ei
+from utils.nep_to_gpumd import extract_model
 
 from src.aux.inference_plot import inference_plot
 import concurrent.futures
@@ -193,6 +194,10 @@ class nep_network:
                     self.input_param.optimizer_param.start_epoch = checkpoint["epoch"] + 1
                 model.load_state_dict(checkpoint["state_dict"])
                 
+                if "max_neighbor" in checkpoint.keys():
+                    model.max_NN_radial, model.max_NN_angular = checkpoint["max_neighbor"]
+                else:
+                    model.max_NN_radial, model.max_NN_angular = (100, 100)
                 # scheduler.load_state_dict(checkpoint["scheduler"])
                 print("=> loaded checkpoint '{}' (epoch {})"\
                       .format(model_path, checkpoint["epoch"]))
@@ -334,8 +339,8 @@ class nep_network:
         if self.input_param.optimizer_param.train_energy:
             # train_lists.append("RMSE_Etot")
             # valid_lists.append("RMSE_Etot")
-            train_lists.append("RMSE_Etot_per_atom")
-            valid_lists.append("RMSE_Etot_per_atom")
+            train_lists.append("RMSE_Etot(eV/atom)")
+            valid_lists.append("RMSE_Etot(eV/atom)")
         if self.input_param.optimizer_param.train_ei:
             train_lists.append("RMSE_Ei")
             valid_lists.append("RMSE_Ei")
@@ -343,30 +348,30 @@ class nep_network:
             train_lists.append("RMSE_Egroup")
             valid_lists.append("RMSE_Egroup")
         if self.input_param.optimizer_param.train_force:
-            train_lists.append("RMSE_F")
-            valid_lists.append("RMSE_F")
+            train_lists.append("RMSE_F(eV/Å)")
+            valid_lists.append("RMSE_F(eV/Å)")
         if self.input_param.optimizer_param.train_virial:
-            train_lists.append("RMSE_virial_per_atom")
-            valid_lists.append("RMSE_virial_per_atom")
+            train_lists.append("RMSE_virial(eV/atom)")
+            valid_lists.append("RMSE_virial(eV/atom)")
         if self.input_param.optimizer_param.opt_name == "LKF" or self.input_param.optimizer_param.opt_name == "GKF":
-            train_lists.extend(["time"])
+            train_lists.extend(["time(s)"])
         else:
-            train_lists.extend(["real_lr", "time"])
+            train_lists.extend(["real_lr", "time(s)"])
 
         train_print_width = {
             "epoch": 5,
             "loss": 18,
-            "RMSE_Etot": 18,
-            "RMSE_Etot_per_atom": 21,
+            "RMSE_Etot(eV)": 18,
+            "RMSE_Etot(eV/atom)": 21,
             "RMSE_Ei": 18,
             "RMSE_Egroup": 18,
-            "RMSE_F": 18,
-            "RMSE_virial": 18,
-            "RMSE_virial_per_atom": 23,
+            "RMSE_F(eV/Å)": 21,
+            "RMSE_virial(eV)": 18,
+            "RMSE_virial(eV/atom)": 23,
             "Loss_l1": 18,
             "Loss_l2": 18,
             "real_lr": 18,
-            "time": 18,
+            "time(s)": 15,
         }
 
         train_format = "".join(["%{}s".format(train_print_width[i]) for i in train_lists])
@@ -406,13 +411,13 @@ class nep_network:
             f_train_log = open(train_log, "a")
 
             # Write the log line to the file based on the training mode
-            train_log_line = "%5d%18.10e" % (
+            train_log_line = "%5d%20.10e" % (
                 epoch,
                 loss,
             )
             if len(val_loader) > 0: #valid log
                 f_valid_log = open(valid_log, "a")
-                valid_log_line = "%5d%18.10e" % (
+                valid_log_line = "%5d%20.10e" % (
                     epoch,
                     vld_loss,
                 )
@@ -424,7 +429,7 @@ class nep_network:
                 if self.input_param.optimizer_param.train_egroup:
                     valid_log_line += "%18.10e" % (val_loss_egroup)
                 if self.input_param.optimizer_param.train_force:
-                    valid_log_line += "%18.10e" % (vld_loss_Force)
+                    valid_log_line += "%21.10e" % (vld_loss_Force)
                 if self.input_param.optimizer_param.train_virial:
                     # valid_log_line += "%18.10e" % (val_loss_virial)
                     valid_log_line += "%23.10e" % (val_loss_virial_per_atom)
@@ -444,14 +449,14 @@ class nep_network:
             if self.input_param.optimizer_param.train_egroup:
                 train_log_line += "%18.10e" % (loss_egroup)
             if self.input_param.optimizer_param.train_force:
-                train_log_line += "%18.10e" % (loss_Force)
+                train_log_line += "%21.10e" % (loss_Force)
             if self.input_param.optimizer_param.train_virial:
                 # train_log_line += "%18.10e" % (loss_virial)
                 train_log_line += "%23.10e" % (loss_virial_per_atom)
             if self.input_param.optimizer_param.opt_name == "LKF" or self.input_param.optimizer_param.opt_name == "GKF":
-                train_log_line += "%18.4f" % (time_end - time_start)
+                train_log_line += "%15.4f" % (time_end - time_start)
             else:
-                train_log_line += "%18.10e%18.4f" % (real_lr , time_end - time_start)
+                train_log_line += "%18.10e%15.4f" % (real_lr , time_end - time_start)
 
             f_train_log.write("%s\n" % (train_log_line))
             f_train_log.close()
@@ -465,6 +470,7 @@ class nep_network:
                     "epoch": epoch,
                     "state_dict": model.state_dict(),
                     "energy_shift":energy_shift,
+                    "max_neighbor": [model.max_NN_radial, model.max_NN_angular],
                     "atom_type_order": self.input_param.atom_type,    #atom type order of davg/dstd/energy_shift, the user input order
                     # "sij_max":Sij_max,
                     "q_scaler": model.get_q_scaler(),
@@ -480,7 +486,9 @@ class nep_network:
                     "epoch": epoch,
                     "state_dict": model.state_dict(),
                     "energy_shift":energy_shift,
+                    "max_neighbor": [model.max_NN_radial, model.max_NN_angular],
                     "q_scaler": model.get_q_scaler(),
+                    "max_neighbor": [model.max_NN_radial, model.max_NN_angular],
                     "atom_type_order": self.input_param.atom_type    #atom type order of davg/dstd/energy_shift
                     # "optimizer":optimizer.state_dict()
                     # "sij_max":Sij_max
@@ -488,7 +496,7 @@ class nep_network:
                     self.input_param.file_paths.model_name,
                     self.input_param.file_paths.model_store_dir,
                 )
-            self.convert_to_gpumd(model)
+            self.convert_to_gpumd()
             
     '''
     description: 
@@ -499,26 +507,13 @@ class nep_network:
     return {*}
     author: wuxingxing
     '''
-    def convert_to_gpumd(self, model:NEP, save_dir:str = None):
-        # model_content = self.input_param.nep_param.to_nep_in_txt()
-        # model_content += train_content
-        if save_dir is None:
-            # save_nep_in_path = os.path.join(self.input_param.file_paths.model_store_dir, self.input_param.file_paths.nep_in_file)
-            save_nep_txt_path = os.path.join(self.input_param.file_paths.model_store_dir, self.input_param.file_paths.nep_model_file)
-        else:
-            # save_nep_in_path = os.path.join(save_dir, self.input_param.file_paths.nep_in_file)
-            save_nep_txt_path = os.path.join(save_dir, self.input_param.file_paths.nep_model_file)            
+    def convert_to_gpumd(self):
+        ckpt_path = os.path.join(self.input_param.file_paths.model_store_dir, self.input_param.file_paths.model_name)
+        save_nep_txt_path = os.path.join(self.input_param.file_paths.model_store_dir, self.input_param.file_paths.nep_model_file)            
         # extract parameters
-        txt_head = self.input_param.nep_param.to_nep_txt(model.max_NN_radial, model.max_NN_angular)
-        txt_body = model.get_nn_params()
-        txt_body_str = "\n".join(map(str, txt_body))
-        txt_head += txt_body_str
-
-        # with open(save_nep_in_path, 'w') as wf:
-        #     wf.writelines(model_content)
-
+        nep_content, model_atom_type, atom_names = extract_model(ckpt_path)
         with open(save_nep_txt_path, 'w') as wf:
-            wf.writelines(txt_head)
+                wf.writelines(nep_content)
         # print("Successfully convert to nep.in and nep.txt file.") 
 
     def evaluate(self,num_thread = 1):
@@ -736,11 +731,18 @@ class nep_network:
     '''
     def inference(self):
         # do inference
-        energy_shift, max_atom_nums, image_path = self._get_stat()
-        energy_shift, atom_map, train_loader, val_loader = self.load_data(energy_shift, max_atom_nums)
+        energy_shift, train_loader, val_loader, train_datset = self.load_data()
         model, optimizer = self.load_model_optimizer(energy_shift)
+        max_NN_radial, min_NN_radial, max_NN_angular, min_NN_angular = \
+                        calculate_neighbor_num_max_min(dataset=train_datset, device = self.device)
+        
+        model.max_NN_radial  = max(model.max_NN_radial, max_NN_radial)
+        model.min_NN_radial  = min(model.min_NN_radial, min_NN_radial)
+        model.max_NN_angular = max(model.max_NN_angular, max_NN_angular)
+        model.min_NN_angular = min(model.min_NN_angular, min_NN_angular)
+    
         start = time.time()
-        res_pd, etot_label_list, etot_predict_list, ei_label_list, ei_predict_list, force_label_list, force_predict_list\
+        res_pd, etot_label_list, etot_predict_list, ei_label_list, ei_predict_list, force_label_list, force_predict_list, virial_label_list, virial_predict_list\
         = predict(train_loader, model, self.criterion, self.device, self.input_param)
         end = time.time()
         print("fitting time:", end - start, 's')
@@ -757,6 +759,9 @@ class nep_network:
         # ei
         write_arrays_to_file(os.path.join(inference_path, "dft_atomic_energy.txt"), ei_label_list)
         write_arrays_to_file(os.path.join(inference_path, "inference_atomic_energy.txt"), ei_predict_list)
+
+        write_arrays_to_file(os.path.join(inference_path, "dft_virial.txt"), virial_label_list, head_line="#\txx\txy\txz\tyy\tyz\tzz")
+        write_arrays_to_file(os.path.join(inference_path, "inference_virial.txt"), virial_predict_list, head_line="#\txx\txy\txz\tyy\tyz\tzz")
 
         # res_pd.to_csv(os.path.join(inference_path, "inference_loss.csv"))
 

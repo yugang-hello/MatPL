@@ -1,6 +1,7 @@
 #include <torch/extension.h>
 #include "../include/nep_cpu.h"
 #include "../include/cpu_calculate_nepneighbor.h"
+const int TYPES = 100;
 
 void launch_calculate_maxneigh_cpu(
     const int64_t * num_atoms,
@@ -35,8 +36,8 @@ void launch_calculate_maxneigh_cpu(
             int count_radial = 0;
             int count_angular = 0;
 
-            int count_radial_list[50]  = {0};
-            int count_angular_list[50] = {0};
+            int count_radial_list[TYPES]  = {0};
+            int count_angular_list[TYPES] = {0};
 
             for (int64_t n2 = N1; n2 < N2; ++n2) {
                 int t2 = atom_type_map[n2];

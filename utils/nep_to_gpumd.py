@@ -64,27 +64,40 @@ m['json_file']['model']['descriptor']
 return {*}
 author: wuxingxing
 '''
-def extract_model(nep_path:str, atom_types=None, atom_type_nums=None, togpumd:bool=False):
+def extract_model(nep_path:str):
     model = torch.load(nep_path, map_location=torch.device('cpu'))
     model_type = model['json_file']['model_type']
     if model_type.upper() != "NEP":
         raise Exception("Error! the input model is not NEP model, please check the model!")
     model_atom_type = model['json_file']['atom_type']
 
+    if "max_neighbor" in model.keys():
+        max_NN_radial, max_NN_angular = model['max_neighbor']
+    else:
+        max_NN_radial = 500
+        max_NN_angular = 300
     # the nep.txt head content
     cutoff = model['json_file']['model']['descriptor']['cutoff']
     n_max  = model['json_file']['model']['descriptor']['n_max']
     basis_size = model['json_file']['model']['descriptor']['basis_size']
     l_max  = model['json_file']['model']['descriptor']['l_max']
-    ann    = model['json_file']['model']['fitting_net']['network_size'][0]
+    if isinstance(model['json_file']['model']['fitting_net'], int):
+        ann = model['json_file']['model']['fitting_net']
+    elif isinstance(model['json_file']['model']['fitting_net'], list):
+        ann = model['json_file']['model']['fitting_net'][0]
+    elif isinstance(model['json_file']['model']['fitting_net']['network_size'], int):
+        ann = model['json_file']['model']['fitting_net']['network_size']
+    else :
+        ann = model['json_file']['model']['fitting_net']['network_size'][0]
     zbl = model['json_file']['model']['descriptor']['zbl'] if 'zbl' in model['json_file']['model']['descriptor'].keys() else None
     atom_names = get_atomic_name_from_number(model_atom_type)
     if zbl is None:
-        head_content =  "nep4   {} {}\n".format(len(atom_names), " ".join(map(str, atom_names)))
+        head_content =  "nep5   {} {}\n".format(len(atom_names), " ".join(map(str, atom_names)))
     else:
-        head_content =  "nep4_zbl   {} {}\n".format(len(atom_names), " ".join(map(str, atom_names)))
+        head_content =  "nep5_zbl   {} {}\n".format(len(atom_names), " ".join(map(str, atom_names)))
         head_content +=  "zbl   {} {}\n".format(zbl/2, zbl)
-    head_content += "cutoff {}\n".format(" ".join(map(str, cutoff)))            #cutoff 6.0 6.0
+    
+    head_content += "cutoff {} {} {} {}\n".format(cutoff[0], cutoff[1], max_NN_radial, max_NN_angular)            #cutoff 6.0 6.0
     head_content += "n_max  {}\n".format(" ".join(map(str, n_max)))             #n_max  4 4
     head_content += "basis_size {}\n".format(" ".join(map(str, basis_size)))    #basis_size 12 12
     head_content += "l_max  {}\n".format(" ".join(map(str, l_max)))             #l_max  4 2 1
@@ -94,15 +107,14 @@ def extract_model(nep_path:str, atom_types=None, atom_type_nums=None, togpumd:bo
     nn_list = []
     c_list = []
     q_list = []
-    last_bias = {}
-    last_bias_list = []
     for i in range(0, len(model_atom_type)):
         nn_list.extend(list(model['state_dict']['fitting_net.{}.layers.0.weight'.format(i)].transpose(1, 0).flatten().cpu().detach().numpy()))
         nn_list.extend((-model['state_dict']['fitting_net.{}.layers.0.bias'.format(i)]).flatten().cpu().detach().numpy())
         nn_list.extend(model['state_dict']['fitting_net.{}.layers.1.weight'.format(i)].flatten().cpu().detach().numpy())
         _last_bias = float(-model['state_dict']['fitting_net.{}.layers.1.bias'.format(i)])
-        last_bias[model_atom_type[i]] = _last_bias
-        last_bias_list.append(_last_bias)
+        nn_list.append(_last_bias)
+
+    nn_list.append(0.0) #last common bais
     c_list.extend(list(model['state_dict']['c_param_2'].permute(2, 3, 0, 1).flatten().cpu().detach().numpy()))
     if l_max[0] > 0:
         c_list.extend(list(model['state_dict']['c_param_3'].permute(2, 3, 0, 1).flatten().cpu().detach().numpy()))
@@ -125,15 +137,9 @@ def extract_model(nep_path:str, atom_types=None, atom_type_nums=None, togpumd:bo
     else:
         assert len(c_list) == two_c_num
     nn_params = len(model_atom_type) * (feature_nums * ann + ann + ann)
-    assert len(nn_list) == nn_params
-
+    assert len(nn_list) == nn_params+1+len(model_atom_type)
     head_content += "\n".join(map(str, nn_list))
     head_content += "\n"
-    if togpumd:
-        head_content += "{}\n".format(calculate_common_bias(last_bias, atom_types, atom_type_nums))
-    else:
-        head_content += "{}\n".format("\n".join(map(str, last_bias_list)))
-
     head_content += "\n".join(map(str, c_list))
     head_content += "\n"
     head_content += "\n".join(map(str, q_list))
@@ -141,37 +147,23 @@ def extract_model(nep_path:str, atom_types=None, atom_type_nums=None, togpumd:bo
     return head_content, model_atom_type, atom_names
 
 def nep_ckpt_to_gpumd(cmd_list):
-    infos = "\n\nThis cmd is used to convert the nep_model.ckpt trained by PWMLFF to nep.txt format for GPUMD!\n\n"
+    infos = "\n\nThis cmd is used to convert the nep_model.ckpt trained by MatPL to nep5.txt for Lammps or GPUMD !\n\n"
     # infos += "This cmd requires installation of pytorch in your Python environment, and there is no mandatory version requirement.\n"
-    infos += "You coud use PWMLFF togpumd -h for detailed parameter explanation.\n\n"
-    infos += "The command example: \n"
-    infos += "    'PWMLFF togpumd -m nep_model.ckpt -t 8 72 -n 32 64 -s gpumd.txt'\n"
-    infos += "    'or PWMLFF togpumd -m nep_model.ckpt -t O Hf -n 32 64 -s gpumd.txt'\n"
-    infos += "    '8 72' is the type list of atoms in the simulated system in GPUMD, you could also use the atom type names such as O Hf , \n"
-    infos += "    '32 64' is the number of atoms corresponding to the atomic types in your simulated system.\n\n\n"
+    infos += "The command example 'MatPL totxt nep_model.ckpt'.\n\n"
     print(infos)
 
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--nep-model-path', help='specify the path of nep_model.ckpt', type=str, default='nep_model.ckpt')
-    parser.add_argument('-t', '--atom-types', help='specify the atom type list, such as 8 72, or O Hf', nargs='+', type=str, default=None)
-    parser.add_argument('-n', '--atom-type-nums', help='specify the atom nums of each atom type', nargs='+', type=int, default=None)
-    parser.add_argument('-s', '--save-name', help='specify the save name, the default is nep_to_gpumd.txt', type=str, default='nep_to_gpumd.txt')
-    args = parser.parse_args(cmd_list)
-    nep_model_path = args.nep_model_path
-    atom_type_nums = args.atom_type_nums
-    atom_types = get_atomic_name_from_str(args.atom_types)
-    save_name = args.save_name
-
+    nep_model_path = cmd_list[0]
+    if len(cmd_list) > 1:
+        save_name = cmd_list[1]
+    else:
+        save_name = "nep5.txt"
     # os.chdir("/data/home/wuxingxing/datas/pwmat_mlff_workdir/hfo2/nep_lkf/model_record")
     # nep_model_path = "/data/home/wuxingxing/datas/pwmat_mlff_workdir/hfo2/nep_lkf/model_record/nep_model.ckpt"
     # atom_types = [8, 72]
     # atom_type_nums = [10, 10]
     # save_name = "nep_to_gpumd.txt"
 
-    assert len(atom_types) == len(atom_type_nums)
-
-    nep_content, model_atom_type, atom_names = extract_model(nep_model_path, atom_types, atom_type_nums, togpumd=True)
+    nep_content, model_atom_type, atom_names = extract_model(nep_model_path)
     with open(save_name, 'w') as wf:
         wf.writelines(nep_content)
     

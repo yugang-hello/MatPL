@@ -1,17 +1,21 @@
 {
-    "model_type": "NEP",
+    "model_type": "DP",
     "format": "pwmlff/npy",
-    "model_load_file": "./model_record/nep_model.ckpt",
+    "model_load_file": "./model_record/dp_model.ckpt",
     "test_data": [
-        "../init_000_50", "../init_004_50", "../init_008_50", 
-        "../init_012_50", "../init_016_50", "../init_020_20", 
-        "../init_024_20", "../init_001_50", "../init_005_50", 
-        "../init_009_50", "../init_013_50", "../init_017_50", 
-        "../init_021_20", "../init_025_20", "../init_002_50", 
-        "../init_006_50", "../init_010_50", "../init_014_50", 
-        "../init_018_50", "../init_022_20", "../init_026_20", 
-        "../init_003_50", "../init_007_50", "../init_011_50", 
-        "../init_015_30", "../init_019_50", "../init_023_20", 
-        "../init_027_20"
+        "../pwdata/init_000_50", "../pwdata/init_004_50", 
+        "../pwdata/init_008_50", "../pwdata/init_012_50", 
+        "../pwdata/init_016_50", "../pwdata/init_020_20", 
+        "../pwdata/init_024_20", "../pwdata/init_001_50", 
+        "../pwdata/init_005_50", "../pwdata/init_009_50", 
+        "../pwdata/init_013_50", "../pwdata/init_017_50", 
+        "../pwdata/init_021_20", "../pwdata/init_025_20", 
+        "../pwdata/init_002_50", "../pwdata/init_006_50", 
+        "../pwdata/init_010_50", "../pwdata/init_014_50", 
+        "../pwdata/init_018_50", "../pwdata/init_022_20", 
+        "../pwdata/init_026_20", "../pwdata/init_003_50", 
+        "../pwdata/init_007_50", "../pwdata/init_011_50", 
+        "../pwdata/init_015_30", "../pwdata/init_019_50", 
+        "../pwdata/init_023_20", "../pwdata/init_027_20"
     ]
 }

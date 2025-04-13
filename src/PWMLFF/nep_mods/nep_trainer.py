@@ -660,8 +660,10 @@ def predict(val_loader, model, criterion, device, args:InputParam, isprofile=Fal
     ei_predict_list = []
     etot_label_list = []
     etot_predict_list = []
+    virial_label_list = []
+    virial_predict_list = []
     model.eval()
-
+    virial_index = [0, 1, 2, 4, 5, 8]
     for i, sample in enumerate(val_loader):
         sample = {key: value.to(device) for key, value in sample.items()}
         FFAtomType = torch.from_numpy(np.array(model.atom_type)).to(device=device, dtype=sample["atom_type_map"].dtype)
@@ -687,21 +689,11 @@ def predict(val_loader, model, criterion, device, args:InputParam, isprofile=Fal
         Force_label  = sample["force"]
 
         # measure data loading time
-        batch_size =  sample["num_atom"].shape[0]
-        avg_atom_number = (sample['num_atom_sum'][-1] / batch_size).item()
-        nr_batch_sample = sample["num_atom"].shape[0]
-
-        # if args.optimizer_param.train_egroup is True:
-        #     Etot_predict, Ei_predict, Force_predict, Egroup_predict, Virial_predict = model(
-        #         dR_neigh_list, ImageDR, dR_neigh_type_list, \
-        #             dR_neigh_list_angular, ImageDR_angular, dR_neigh_type_list_angular, \
-        #             atom_type_map[0], atom_type[0], 0, Egroup_weight, Divider)
-
-            # atom_type_map: we only need the first element, because it is same for each image of MOVEMENT
         Etot_predict, Ei_predict, Force_predict, Egroup_predict, Virial_predict = model(
                 NN_radial, NL_radial, Ri_radial, 
                     NN_angular, NL_angular, Ri_angular,
                         sample["num_atom"], sample["atom_type_map"], None, None)
+        
         # mse
         loss_F_val = criterion(Force_predict, Force_label)
         loss_Etot_val = criterion(Etot_predict, Etot_label)
@@ -716,10 +708,10 @@ def predict(val_loader, model, criterion, device, args:InputParam, isprofile=Fal
         if args.optimizer_param.train_virial is True:
             # loss_Virial_val = criterion(Virial_predict, Virial_label.squeeze(1))  #115.415137283393
             data_mask = Virial_label[:, 0] > -1e6
-            _Virial_label = Virial_label[:, [0,1,2,4,5,8]][data_mask]
+            _Virial_label = Virial_label[:, virial_index][data_mask]
             if data_mask.any().item():
-                loss_Virial_val = criterion(Virial_predict[data_mask][:,[0,1,2,4,5,8]], _Virial_label)
-                loss_Virial_per_atom_val = criterion(Virial_predict[data_mask][:,[0,1,2,4,5,8]]/sample["num_atom"][data_mask], _Virial_label/sample["num_atom"][data_mask])
+                loss_Virial_val = criterion(Virial_predict[data_mask][:,virial_index], _Virial_label)
+                loss_Virial_per_atom_val = criterion(Virial_predict[data_mask][:,virial_index]/sample["num_atom"][data_mask], _Virial_label/sample["num_atom"][data_mask])
                 # loss_Virial.update(loss_Virial_val.item(), _Virial_label.shape[0])
                 # loss_Virial_per_atom.update(loss_Virial_per_atom_val.item(), _Virial_label.shape[0])
                 loss_val += args.optimizer_param.pre_fac_virial * loss_Virial_val
@@ -745,8 +737,9 @@ def predict(val_loader, model, criterion, device, args:InputParam, isprofile=Fal
         etot_label_list.append(float(Etot_label))
         etot_predict_list.append(float(Etot_predict))
         res_pd.loc[res_pd.shape[0]] = res_list
-
-    return res_pd, etot_label_list, etot_predict_list, ei_label_list, ei_predict_list, force_label_list, force_predict_list
+        virial_label_list.append(Virial_label[:,virial_index].flatten().detach().cpu().numpy())
+        virial_predict_list.append(Virial_predict[:,virial_index].flatten().detach().cpu().numpy())
+    return res_pd, etot_label_list, etot_predict_list, ei_label_list, ei_predict_list, force_label_list, force_predict_list, virial_label_list, virial_predict_list
 
 
 def save_checkpoint(state, filename, prefix):

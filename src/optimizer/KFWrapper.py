@@ -269,7 +269,7 @@ class KFOptimizerWrapper:
         
         self.optimizer.zero_grad()
         bs = _Virial_label.shape[0]  
-        _Virial_predict = Virial_predict[:, index]
+        _Virial_predict = Virial_predict[:, index][data_mask]
         error = _Virial_label - _Virial_predict
         error = error / natoms_sum
         mask = error < 0

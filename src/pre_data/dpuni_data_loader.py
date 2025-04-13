@@ -162,7 +162,7 @@ class UniDataset(Dataset):
         if torch.cuda.is_available():
             device = torch.device("cuda")
         else:
-            self.device = torch.device("cpu")
+            device = torch.device("cpu")
         maxneigh = calculate_neighbor_num_max_min(self, device)
         self.m_neigh = max(maxneigh, self.m_neigh)
         self.config['maxNeighborNum'] = self.m_neigh
@@ -174,7 +174,7 @@ class UniDataset(Dataset):
 
     def get_energy_shift(self):
         if len(self.energy_shift) < 1:
-            self.energy_shift = self.set_energy_shift()
+            self.energy_shift = self.set_energy_shift_2()
         return self.energy_shift
 
     def set_davg_dstd(self):
@@ -221,38 +221,76 @@ class UniDataset(Dataset):
             davg.append(np.mean(np.array(davg_dict[atom]), axis=0).flatten())
         return np.array(davg), np.array(dstd)
 
-    def set_energy_shift(self):
+    def set_energy_shift_2(self):
+        class_dict = {}
+        for image in self.image_list:
+            atom_types = image.atom_types_image
+            cout_type, cout_num = np.unique(atom_types, return_counts=True)
+            image_key = "_".join(["{}:{}".format(i1, i2) for i1, i2 in zip(cout_type, cout_num)])
+            if image_key in class_dict.keys():
+                class_dict[image_key]['Ep'].append(image.Ep)
+            else:
+                class_dict[image_key] = {}
+                class_dict[image_key]['Ep'] = [image.Ep]
+                class_dict[image_key]['cout_num'] = cout_num
+                class_dict[image_key]['cout_type'] = cout_type
+
         energy_dict = {}
-        atom_type_searched = set()
-        repeat_num = 0
         for atom in self.atom_types:
             energy_dict[atom] = []
         energy_dict['E'] = []
-        shuffled_list = random.sample(self.image_list, len(self.image_list))
-        for image in shuffled_list:
-            atom_types = image.atom_types_image
-            cout_type, cout_num = np.unique(atom_types, return_counts=True)
-            atom_types_image_dict = dict(zip(cout_type, cout_num))
+        for key in class_dict.keys():
+            Ep = np.mean(class_dict[key]['Ep'])
+            cout_num  = class_dict[key]['cout_num'] 
+            cout_type = class_dict[key]['cout_type']
+
             for element in self.atom_types:
-                if element in atom_types_image_dict.keys():
-                    energy_dict[element].append(atom_types_image_dict[element])
+                if element in cout_type:
+                    indices = np.where(cout_type == element)[0]
+                    energy_dict[element].append(cout_num[indices][0])
                 else:
                     energy_dict[element].append(0)
-            energy_dict['E'].append(image.Ep)
-            for element in atom_types_image_dict.keys():
-                atom_type_searched.add(element)
-            if len(atom_type_searched) == len(self.atom_types):
-                repeat_num += 1
-                atom_type_searched.clear()
-            if repeat_num > 5:
-                break
+            energy_dict['E'].append(Ep)
         _num_matrix = []
         for key in energy_dict.keys():
             if key != 'E':
                 _num_matrix.append(energy_dict[key])
         x, residuals, rank, s = np.linalg.lstsq(np.array(_num_matrix).T, energy_dict['E'], rcond=None)
         energy_shift = x.tolist()
-        return np.array(energy_shift)
+        return np.array(energy_shift) # array([-7.85248589, -8.80939613, -5.12775169, -3.13588943])
+
+    # def set_energy_shift(self):
+    #     energy_dict = {}
+    #     atom_type_searched = set()
+    #     repeat_num = 0
+    #     for atom in self.atom_types:
+    #         energy_dict[atom] = []
+    #     energy_dict['E'] = []
+    #     shuffled_list = random.sample(self.image_list, len(self.image_list))
+    #     for image in shuffled_list:
+    #         atom_types = image.atom_types_image
+    #         cout_type, cout_num = np.unique(atom_types, return_counts=True)
+    #         atom_types_image_dict = dict(zip(cout_type, cout_num))
+    #         for element in self.atom_types:
+    #             if element in atom_types_image_dict.keys():
+    #                 energy_dict[element].append(atom_types_image_dict[element])
+    #             else:
+    #                 energy_dict[element].append(0)
+    #         energy_dict['E'].append(image.Ep)
+    #         for element in atom_types_image_dict.keys():
+    #             atom_type_searched.add(element)
+    #         if len(atom_type_searched) == len(self.atom_types):
+    #             repeat_num += 1
+    #             atom_type_searched.clear()
+    #         if repeat_num > 5:
+    #             break
+    #     _num_matrix = []
+    #     for key in energy_dict.keys():
+    #         if key != 'E':
+    #             _num_matrix.append(energy_dict[key])
+    #     x, residuals, rank, s = np.linalg.lstsq(np.array(_num_matrix).T, energy_dict['E'], rcond=None)
+    #     energy_shift = x.tolist()
+    #     return np.array(energy_shift)
 
     def __getitem__(self, index):
         if self.use_fractional:
@@ -718,7 +756,8 @@ def compute_Ri(list_neigh, dR_neigh, Rc_type, Rm_type):
 def calculate_neighbor_num_max_min(
                 dataset: UniDataset, 
                 device: torch.device) -> None:
-
+    if dataset.total_images == 0:
+        return -1
     dataset.use_fractional = False
     dataloader = torch.utils.data.DataLoader(
         dataset,

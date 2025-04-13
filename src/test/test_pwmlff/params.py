@@ -59,9 +59,9 @@ class TrainInput(object):
         self.model_type = train_dict["model_type"]
         # get optimizer type
         if "optimizer" in train_dict.keys():
-            self.optimizer = get_parameter("optimizer", train_dict["optimizer"], "LKF")
+            self.optimizer = get_parameter("optimizer", train_dict["optimizer"], "ADAM")
         else:
-            self.optimizer = "LKF"
+            self.optimizer = "ADAM"
         # get train_data
         train_data = get_parameter("train_data", json_dict, [])
         self.train_data = []

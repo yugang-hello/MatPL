@@ -1,7 +1,7 @@
 
 
 def calcualte_atomnum_lmps():
-    memory_limit_mb = 24576  # 显存大小 24 GB 转换为 MB
+    memory_limit_mb = 40*1024  # 显存大小 24 GB 转换为 MB
     atom_nums = 1
 
     while True:
@@ -13,13 +13,13 @@ def calcualte_atomnum_lmps():
         memory_needed_mb += atom_nums * 500 * 4 / 1024 / 1024  # NL_radial
         memory_needed_mb += atom_nums * 4 / 1024 / 1024  # NN_angular
         memory_needed_mb += atom_nums * 100 * 4 / 1024 / 1024  # NL_angular
-        memory_needed_mb += atom_nums * 8 / 1024 / 1024  # potential_per_atom
+        memory_needed_mb += atom_nums * 4 / 1024 / 1024  # potential_per_atom
         memory_needed_mb += atom_nums * 4 / 1024 / 1024  # itype
         memory_needed_mb += atom_nums * 50 * 4 / 1024 / 1024  # Fp
         memory_needed_mb += atom_nums * 15 * 24 * 4 / 1024 / 1024  # sum_fxyz
-        memory_needed_mb += atom_nums * 1 * 3 * 8 / 1024 / 1024  # force_per_atom
-        memory_needed_mb += atom_nums * 1 * 9 * 8 / 1024 / 1024  # virial_per_atom
-        memory_needed_mb += atom_nums * 1 * 3 * 8 / 1024 / 1024  # position
+        memory_needed_mb += atom_nums * 1 * 3 * 4 / 1024 / 1024  # force_per_atom
+        memory_needed_mb += atom_nums * 1 * 9 * 4 / 1024 / 1024  # virial_per_atom
+        memory_needed_mb += atom_nums * 1 * 3 * 4 / 1024 / 1024  # position
 
         # Check if memory requirement exceeds the limit
         if memory_needed_mb > memory_limit_mb:

@@ -35,7 +35,7 @@ def dp_train(input_json: json, cmd:str):
     if os.path.exists(dp_param.file_paths.model_save_path) is False:
         if os.path.exists(dp_param.file_paths.model_load_path):
             dp_param.file_paths.model_save_path = dp_param.file_paths.model_load_path
-    extract_force_field(dp_param)
+    # extract_force_field(dp_param) # not not generate the forcefield dir
 
 '''
 description: 
@@ -54,6 +54,8 @@ def dp_test(input_json: json, cmd:str):
     model_checkpoint = torch.load(model_load_path, map_location=torch.device("cpu"))
     json_dict_train = model_checkpoint["json_file"]
     model_checkpoint["json_file"]["datasets_path"] = []
+    json_dict_train["train_data"] = []
+    json_dict_train["valid_data"] = []
     json_dict_train["test_data"] = input_json["test_data"]
     json_dict_train["format"] = get_parameter("format", input_json, "pwmat/movement")
     dp_param = InputParam(json_dict_train, "test".upper())

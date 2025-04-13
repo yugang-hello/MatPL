@@ -46,7 +46,7 @@ class NEP3_CPU
 public:
   struct ParaMB {
     int model_type = 0; // 0=potential, 1=dipole, 2=polarizability
-    int version = 2;
+    int version = 4;
     double rc_radial = 0.0;
     double rc_angular = 0.0;
     double rcinv_radial = 0.0;
@@ -62,12 +62,14 @@ public:
     int num_c_radial = 0;
     int num_types = 0;
     double q_scaler[140];
+    int atomic_numbers[94];
   };
 
   struct ANN {
     int dim = 0;
     int num_neurons1 = 0;
     int num_para = 0;
+    int num_para_ann = 0;
     int num_c2 = 0;
     int num_c3 = 0;
     const double* w0[103];

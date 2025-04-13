@@ -1,5 +1,6 @@
 {   
     "test_movement_file":["./MD/MOVEMENT"],
+    "format": "pwmat/movement",
     "model_type": "Linear",
     "atom_type":[14, 6]
 }
